@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.Playwright;
 
 var htmlResponse = await GetHtmlDocument("https://temadagar.se/kalender/");
 var document = new HtmlDocument();
@@ -35,9 +36,11 @@ foreach (var node in nodes)
 
 static async Task<string> GetHtmlDocument(string url)
 {
-    using var client = new HttpClient();
-    var response = await client.GetAsync(url);
-    return await response.Content.ReadAsStringAsync();
+    using var playwright = await Playwright.CreateAsync();
+    await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+    var page = await browser.NewPageAsync();
+    await page.GotoAsync(url);
+    return await page.ContentAsync();
 }
 
 void PrettyOutput(HtmlNode node)
